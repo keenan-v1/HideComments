@@ -1,0 +1,38 @@
+/*
+ * HideComments
+ * 
+ * File: hidecomments.css
+ *
+ * Allows users to hide individual comments inside discussions.
+ * Support for hiding discussions partially implemented.
+ * 
+ * With techniques borrowed from the Ignore plugin by Tim Gunter.
+ *
+ * @version 1.0.0
+ * @author Jonathan Walker <xorith@gmail.com>
+ * @copyright 2015 Jonathan Walker
+ * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
+ * @package Addons 
+ */
+
+/* A hidden comment, base CSS class - Displayed. 
+ * Note: opacity set to 60% to denote the Hide prefrence
+ */
+.DataList .HiddenComment {
+   cursor: pointer;
+   opacity: 0.60;
+}
+
+/* A hidden comment, collapsed.
+ * Header opacity 40%
+ */
+.DataList .HiddenComment.HiddenCommentHide {
+   opacity: 0.4;
+}
+
+/* Collapses a hidden comment.
+ */
+.HiddenComment.HiddenCommentHide .Item-BodyWrap, 
+.HiddenComment.HiddenCommentHide .CommentQuote {
+   display: none;
+}
