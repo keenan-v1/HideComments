@@ -9,7 +9,7 @@
  * 
  * With techniques borrowed from the Ignore plugin by Tim Gunter.
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @author Jonathan Walker <xorith@gmail.com>
  * @copyright 2015 Jonathan Walker
  * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
@@ -20,7 +20,7 @@
 $PluginInfo['HideComments'] = array(
    'Name'                  => 'Hide Comments',
    'Description'           => 'Allows users to hide comments within a discussion.',
-   'Version'               => '1.0.0',
+   'Version'               => '1.1.0',
    'RequiredApplications'  => FALSE,
    'RequiredTheme'         => FALSE, 
    'RequiredPlugins'       => FALSE,
