@@ -1,5 +1,6 @@
 # HideComments
 HideComments plugin for Vanilla Forums
+
 v1.1.0
 
 Allows for users to hide specific comments within a discussion. The hide preference is saved and subsequent views will show a collapsed comment that can be expanded again.
