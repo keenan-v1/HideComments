@@ -2,15 +2,15 @@ HideComments
 ============
 
 HideComments plugin for Vanilla Forums  
-*Version* 1.0.1
+Version: 1.0.1
 
 Allows for users to hide specific comments within a discussion. The hide preference is saved and subsequent views will show a collapsed comment that can be expanded again.
 
-*Change Log*  
+**Change Log**  
 * 1.0.0 - _Initial Release_  
 * 1.0.1 - _Added checks for roles_
 
-*Version 1.0.1 Note*  
+**Version 1.0.1 Note**  
 By default, this plugin will not let users hide comments from Moderators and Administrators. To override this, place this line in your config.php:
 ```
 $Configuration['Plugins']['HideComments']['NoHideRoles'] = 'A,comma,separated,list';
@@ -19,7 +19,8 @@ Use role names as they are defined in your forum configuration.
 
 ---
 
-*Developed on Vanilla Forums 2.1.9*
+**Developed on Vanilla Forums 2.1.9**  
+May work on earlier versions, but they have not been tested.
 
 I welcome any feedback!
 
