@@ -9,7 +9,7 @@
  * 
  * With techniques borrowed from the Ignore plugin by Tim Gunter.
  *
- * @version 1.1.0
+ * @version 1.0.1
  * @author Jonathan Walker <xorith@gmail.com>
  * @copyright 2015 Jonathan Walker
  * @license http://www.opensource.org/licenses/gpl-2.0.php GPL
@@ -20,7 +20,7 @@
 $PluginInfo['HideComments'] = array(
    'Name'                  => 'Hide Comments',
    'Description'           => 'Allows users to hide comments within a discussion.',
-   'Version'               => '1.1.0',
+   'Version'               => '1.0.1',
    'RequiredApplications'  => FALSE,
    'RequiredTheme'         => FALSE, 
    'RequiredPlugins'       => FALSE,
@@ -65,6 +65,44 @@ class HideCommentsPlugin extends Gdn_Plugin {
       if( !$Result )
          return false; // Not Found
       return intval($Result->ID); // Found
+   }
+
+   public function CanHide($DiscussionID, $CommentID = NULL) {
+      // Signed in?
+      if(  !($UserID = Gdn::Session()->UserID))
+	return false;
+      // Comment or Discussion?
+      if($CommentID == NULL) {
+         $discussionModel = new DiscussionModel();
+         $discussionModel = $discussionModel->GetID($DiscussionID);
+         $TargetUID = $discussionModel->InsertUserID;
+      } else {
+         $commentModel = new CommentModel();
+         $commentModel = $commentModel->GetID($CommentID);
+         $TargetUID = $commentModel->InsertUserID;
+      }
+
+      // You cannot hide your own
+      if( $UserID == $TargetUID )
+         return false;
+
+      // Otherwise Admins can hide whatever they want
+      if( Gdn::UserModel()->GetID($UserID)->Admin )
+         return true;
+
+      // Make sure the comment wasn't authored by someone possessing a role in NO_HIDE_ROLES
+      $roles = array();
+      $roleData = Gdn::UserModel()->GetRoles($TargetUID);
+      if( $roleData !== false && $roleData->NumRows(DATASET_TYPE_ARRAY) > 0 )
+         $roles = ConsolidateArrayValuesByKey( $roleData->Result(), 'Name' );
+      $noHideSetting = C('Plugins.HideComments.NoHideRoles','Administrator');
+      $noHideRoles = explode(",",$noHideSetting);
+      foreach($noHideRoles as $roleName)
+         if( in_array($roleName, $roles) )
+            return false;
+
+      // Otherwise, yes you can hide this!
+      return true;
    }
 
    /*
@@ -115,11 +153,12 @@ class HideCommentsPlugin extends Gdn_Plugin {
     * @param mixed $Args The Event Arguments.
     */
    public function DiscussionController_CommentOptions_Handler($Sender, $Args){
-      if(!($UserID = Gdn::Session()->UserID))
+      $DiscussionID = $Args['Discussion']->DiscussionID;
+      $CommentID = $Args['Comment']->CommentID;
+      // Check to see if the user can hide this comment. If it's already hidden, allow them to unhide it.
+      if( !$this->CanHide($DiscussionID, $CommentID) && $this->Hidden($DiscussionID, $CommentID) === false )
          return;
-      if($UserID == $Args['Comment']->InsertUserID)
-         return;
-      $this->MenuOptions($Args['CommentOptions'],$Args['Discussion']->DiscussionID, $Args['Comment']->CommentID);
+      $this->MenuOptions($Args['CommentOptions'], $DiscussionID, $CommentID);
    }
 
    /*
@@ -128,9 +167,7 @@ class HideCommentsPlugin extends Gdn_Plugin {
     * @param mixed $Sender The Sender data structure
     */
    public function DiscussionController_HideComment_Create($Sender) {
-      // Signed-in users only.
-      if (!($UserID = Gdn::Session()->UserID))
-         return;
+      $UserID = Gdn::Session()->UserID;
 
       // Make sure we have both the DiscussionID and the CommentID
       if (sizeof($Arguments = $Sender->RequestArgs) != 2)
@@ -144,9 +181,11 @@ class HideCommentsPlugin extends Gdn_Plugin {
       // Set up our JSON response
       $Sender->DeliveryMethod(DELIVERY_METHOD_JSON);
       $Sender->DeliveryType(DELIVERY_TYPE_VIEW);
+      $Result = $this->Hidden($DiscussionID, $CommentID);
+      $canHide = $this->CanHide($DiscussionID, $CommentID);
 
       // Check to see if this item is already hidden.
-      if( ($Result = $this->Hidden($DiscussionID, $CommentID)) !== false ) {
+      if($Result !== false) {
          try {
             // Remove Hide preference
             Gdn::SQL()->Delete('HideComment', array(
@@ -164,9 +203,9 @@ class HideCommentsPlugin extends Gdn_Plugin {
             }
             $Sender->InformMessage(T('The '.(($CommentID == NULL) ? "discussion" : "comment").' will now be shown.'));
          } catch(Exception $e) {
-            $Sender->InformMessage(T('Something went wrong. Please contact the administrator.'));
+            $Sender->InformMessage(T('Something went wrong while unhiding. Please contact the administrator.'));
          }
-      } else {
+      } else if( $canHide ) {
          try {
             // Set Hide preference
             Gdn::SQL()->Insert('HideComment', array(
@@ -186,8 +225,10 @@ class HideCommentsPlugin extends Gdn_Plugin {
             }
             $Sender->InformMessage(T('The '.(($CommentID == NULL) ? "discussion" : "comment").' will now be hidden.'));
          } catch(Exception $e) {
-            $Sender->InformMessage(T('Something went wrong. Please contact the administrator.'));
+            $Sender->InformMessage(T('Something went wrong while hiding. Please contact the administrator.'));
          }
+      } else {
+         $Sender->InformMessage(T('You are not allowed to hide that '.(($CommentID == NULL) ? "discussion" : "comment").'.'));
       }
       // Refresh view
       $Sender->Render('Blank', 'Utility', 'Dashboard');
