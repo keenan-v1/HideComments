@@ -59,6 +59,7 @@ window.updateHidden = function() {
    // @todo Change from an ID to a unique class
    var opt = $('a.Hide' + $(this).attr('id'));
    opt.text("Unhide Comment");
+   opt.prop("disabled", false);
 }
 
 // Function called by AJAX to update the state of the page when the Hide preference is removed.
@@ -71,6 +72,7 @@ window.updateShown = function() {
    // @todo Change from an ID to a unique class
    var opt = $('a.Hide' + $(this).attr('id'));
    opt.text("Hide Comment");
+   opt.prop("disabled", false);
 }
 
 /*

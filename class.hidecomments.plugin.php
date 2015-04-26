@@ -153,6 +153,8 @@ class HideCommentsPlugin extends Gdn_Plugin {
     * @param mixed $Args The Event Arguments.
     */
    public function DiscussionController_CommentOptions_Handler($Sender, $Args){
+        if(!Gdn::Session()->UserID)
+            return;
       $DiscussionID = $Args['Discussion']->DiscussionID;
       $CommentID = $Args['Comment']->CommentID;
       // Check to see if the user can hide this comment. If it's already hidden, allow them to unhide it.
